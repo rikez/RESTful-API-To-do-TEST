@@ -1,20 +1,12 @@
 const express = require('express');
 const app = express();
-const todos = [{
-	id: 1,
-	desc: 'Something in the afternoon',
-	completed: false
-}, {
-	id: 2,
-	desc: 'Go shopping',
-	completed: false
-}, {
-	id:3,
-	desc: 'Go clubbing',
-	completed: false
-}];
+const bodyParser = require('body-parser');
+var todoID = 1;
+var todos = [];
 
 const PORT = process.env.PORT || 3000;
+
+app.use(bodyParser.json());
 
 app.get('/', function (req, res) {
 	res.send('To-do API');
@@ -30,13 +22,21 @@ app.get('/todos/:id', function(req, res) {
 	for(var i = 0; i < todos.length; i++) {
 		if(ids === todos[i].id) {
 			theTodo = todos[i];
-		} 
+		}
 	}
 	if(theTodo) {
 		res.json(theTodo);
 	} else {
 		res.status(404).send();
 	}
+});
+
+app.post('/todos', function(req, res) {
+	var body = req.body;
+	body.id = todoID++;
+	todos.push(body);
+
+	res.json(body);
 });
 
 app.listen(PORT, function() {
