@@ -1,8 +1,44 @@
 const express = require('express');
 const app = express();
+const todos = [{
+	id: 1,
+	desc: 'Something in the afternoon',
+	completed: false
+}, {
+	id: 2,
+	desc: 'Go shopping',
+	completed: false
+}, {
+	id:3,
+	desc: 'Go clubbing',
+	completed: false
+}];
 
 const PORT = process.env.PORT || 3000;
 
 app.get('/', function (req, res) {
 	res.send('To-do API');
-})
+});
+
+app.get('/todos', function(req, res) {
+	res.json(todos);
+});
+
+app.get('/todos/:id', function(req, res) {
+	var ids = parseInt(req.params.id, 10);
+	var theTodo;
+	for(var i = 0; i < todos.length; i++) {
+		if(ids === todos[i].id) {
+			theTodo = todos;
+		} 
+	}
+	if(theTodo) {
+		res.json(theTodo);
+	} else {
+		res.status(404).send();
+	}
+});
+
+app.listen(PORT, function() {
+	console.log('Listening on port ' + PORT);
+});
