@@ -16,7 +16,7 @@ app.get('/', function (req, res) {
 
 app.get('/todos', function(req, res) {
 	var queryParams =  req.query;
-	var filteredTodos = todos;
+	var filteredTodos = db.task.findAll(task);
 
 	if(queryParams.hasOwnProperty('completed') && queryParams.completed === 'true') {
 		filteredTodos = _.where(filteredTodos, {completed: true});
@@ -35,16 +35,14 @@ app.get('/todos', function(req, res) {
 app.get('/todos/:id', function(req, res) {
 	var ids = parseInt(req.params.id, 10);
 	db.task.findById(ids).then(function (task){
-		res.json(task.toJSON());
+			if(!!task) {
+			res.json(task.toJSON());
+		} else {
+			res.status(404).send();
+		}
 	}, function(e) {
-			console.log
+			res.status(500).json(e);
 	});
-	var theTodo = _.findWhere(todos, {id: ids});
-	if(theTodo) {
-		res.json(theTodo);
-	} else {
-		res.status(404).send();
-	}
 });
 
 app.post('/todos', function(req, res) {
