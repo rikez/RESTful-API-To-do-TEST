@@ -75,26 +75,30 @@ app.delete('/todos/:id', function(req, res) {
 
 app.put('/todos/:id', function(req, res) {
 	var id = parseInt(req.params.id, 10);
-	var updatedTodo = _.findWhere(todos, {id: id});
 	var body = _.pick(req.body, 'desc', 'completed');
-	var validAtt = {};
+	var where = {};
 
-	if(!updatedTodo) {
-		return res.status(404).json("Something went wrong!");
-	}
-			if(body.hasOwnProperty('completed') && _.isBoolean(body.completed)) {
-				validAtt.completed = body.completed;
-			} else if(body.hasOwnProperty('completed')) {
-						return res.status(400).json("Error");
+			if(body.hasOwnProperty('desc')) {
+				where.desc = body.desc;
 			}
-			if(body.hasOwnProperty('desc') && _.isString(body.desc) && body.desc.trim().length > 0) {
-				validAtt.desc = body.desc;
-			} else if (body.hasOwnProperty('desc')) {
-						return res.status(400).json("Error");
+			if(body.hasOwnProperty('completed')) {
+				where.completed = body.completed;
 			}
-			_.extend(updatedTodo, validAtt);
-			res.json(updatedTodo);
-})
+
+			db.task.findById(id).then(function (tasks) {
+					if(tasks) {
+						tasks.update(where).then(function (task) {
+								res.json(task.toJSON());
+						}, function(e) {
+								res.status(400).send();
+						})
+					} else {
+						res.status(404).send();
+					}
+			}, function(e) {
+					res.status(500).send();
+			});
+});
 
 db.sequelize.sync().then(function() {
 	app.listen(PORT, function() {
