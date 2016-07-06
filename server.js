@@ -28,7 +28,7 @@ app.get('/todos', function(req, res) {
 				$like: '%' + query.q + '%'
 			};
 	}
-	db.task.findAll({where: where})).then(function(tasks) {
+	db.task.findAll({where: where}).then(function(tasks) {
 			res.json(tasks);
 	}, function (e) {
 			res.status(500).send();
@@ -59,13 +59,13 @@ app.post('/todos', function(req, res) {
 
 app.delete('/todos/:id', function(req, res) {
 	var id = parseInt(req.params.id, 10);
-	todos = _.without(todos, _.findWhere(todos, {id: id}));
-	 if(todos) {
-		 res.json(todos);
-	 } else {
-		 res.status(404).json("No todo found to be deleted");
-	 }
-})
+	db.task.destroy({where: {id: id}}).then(function (task) {
+		console.log(task);
+		res.json(task);
+	}, function (e) {
+		res.status(404).json(e);
+	});
+});
 
 app.put('/todos/:id', function(req, res) {
 	var id = parseInt(req.params.id, 10);
