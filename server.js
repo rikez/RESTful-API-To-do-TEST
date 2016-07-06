@@ -28,6 +28,7 @@ app.get('/todos', function(req, res) {
 				$like: '%' + query.q + '%'
 			};
 	}
+	query = _.pick(where, 'completed', 'desc');
 	db.task.findAll({where: where}).then(function(tasks) {
 			res.json(tasks);
 	}, function (e) {
@@ -59,11 +60,16 @@ app.post('/todos', function(req, res) {
 
 app.delete('/todos/:id', function(req, res) {
 	var id = parseInt(req.params.id, 10);
-	db.task.destroy({where: {id: id}}).then(function (task) {
-		console.log(task);
-		res.json(task);
+	db.task.destroy({where: {id: id}}).then(function (rowsDeleted) {
+		if(rowsDeleted === 0) {
+					res.status(404).json({
+						error: 'No deleted data'
+					});
+		} else {
+					res.status(200).send();
+		}
 	}, function (e) {
-		res.status(404).json(e);
+		res.status(500).json(e);
 	});
 });
 
