@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const _ = require('underscore');
+const db = require('./db.js');
 var todoID = 1;
 var todos = [];
 
@@ -33,6 +34,11 @@ app.get('/todos', function(req, res) {
 
 app.get('/todos/:id', function(req, res) {
 	var ids = parseInt(req.params.id, 10);
+	db.task.findById(ids).then(function (task){
+		res.json(task.toJSON());
+	}, function(e) {
+			console.log
+	});
 	var theTodo = _.findWhere(todos, {id: ids});
 	if(theTodo) {
 		res.json(theTodo);
@@ -43,13 +49,19 @@ app.get('/todos/:id', function(req, res) {
 
 app.post('/todos', function(req, res) {
 	var body = _.pick(req.body, 'desc', 'completed');
-	if (!_.isBoolean(body.completed) || !_.isString(body.desc) || body.desc.trim().length === 0) {
+	db.task.create(body).then(function (task){
+			res.json(task.toJSON());
+	}, function (e) {
+			res.status(404).json(e);
+	});
+
+	/*if (!_.isBoolean(body.completed) || !_.isString(body.desc) || body.desc.trim().length === 0) {
 		return res.status(400).send();
 	}
 	body.desc = body.desc.trim();
 	body.id = todoID++;
 	todos.push(body);
-	res.json(body);
+	res.json(body);*/
 });
 
 app.delete('/todos/:id', function(req, res) {
@@ -81,14 +93,12 @@ app.put('/todos/:id', function(req, res) {
 			} else if (body.hasOwnProperty('desc')) {
 						return res.status(400).json("Error");
 			}
-
-
 			_.extend(updatedTodo, validAtt);
 			res.json(updatedTodo);
-
-
 })
 
-app.listen(PORT, function() {
-	console.log('Listening on port ' + PORT);
-});
+db.sequelize.sync().then(function() {
+	app.listen(PORT, function() {
+		console.log('Listening on port ' + PORT);
+	});
+})
