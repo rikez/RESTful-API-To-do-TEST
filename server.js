@@ -3,6 +3,7 @@ const app = express();
 const bodyParser = require('body-parser');
 const _ = require('underscore');
 const db = require('./db.js');
+const bcrypt = require('bcrypt');
 var todoID = 1;
 var todos = [];
 
@@ -108,6 +109,15 @@ app.post('/users', function(req, res) {
 			res.status(404).json(e);
 	})
 })
+
+app.post('/users/login', function(req, res) {
+	var body = _.pick(req.body, 'email', 'pass');
+	db.user.authhenticate(body).then(function (user) {
+			res.json(user.toPublicJSON());
+	}, function () {
+			res.status(401).send();
+	});
+});
 
 db.sequelize.sync({force: true}).then(function() {
 	app.listen(PORT, function() {
