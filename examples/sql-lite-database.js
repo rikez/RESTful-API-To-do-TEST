@@ -1,8 +1,7 @@
 const Sequelize = require('sequelize');
-
 var sequelize = new Sequelize(undefined, undefined, undefined, {
     'dialect': 'sqlite',
-    'storage': __dirname + '/basic:sqlite-databse.sqlite'
+    'storage': __dirname + '/basic:sqlite.sqlite'
 });
 
 var taskList = sequelize.define('task', {
@@ -18,35 +17,15 @@ var taskList = sequelize.define('task', {
     allowNull: false,
     defaultValue: false
   }
-})
+});
+
+var User = sequelize.define('user', {
+  email: Sequelize.STRING
+});
+
+taskList.belongsTo(User);
+User.hasMany(taskList);
 
 sequelize.sync({force: true}).then(function() {
     console.log('It is all synced');
-
-    taskList.create({
-      desc: 'Walk dog',
-      completed: false
-    }).then(function (task) {
-        return taskList.create({
-          desc: 'Clean cheat'
-        });
-    }).then(function() {
-          return taskList.findAll({
-            where: {
-              desc: {
-                $like: '%cheat%'
-              }
-            }
-          });
-    }).then(function(tasks){
-          if(tasks) {
-            tasks.forEach(function(task){
-              console.log(task.toJSON());
-            });
-          } else{
-            console.log('No tasks')
-          }
-    }).catch(function(e) {
-        console.log(e);
-    })
 });
