@@ -18,7 +18,9 @@ app.get('/', function (req, res) {
 
 app.get('/todos', middleware.requireAuthentication, function(req, res) {
 	var query =  req.query;
-	var where = {};
+	var where = {
+		userId:req.user.get('id')
+	};
 	if(query.hasOwnProperty('completed') && query.completed === 'true') {
 		where.completed = true;
 	} else if(query.hasOwnProperty('completed') && query.completed === 'false') {
@@ -40,7 +42,12 @@ app.get('/todos', middleware.requireAuthentication, function(req, res) {
 
 app.get('/todos/:id', middleware.requireAuthentication, function(req, res) {
 	var ids = parseInt(req.params.id, 10);
-	db.task.findById(ids).then(function (task){
+	db.task.findOne({
+		where: {
+			id: ids,
+			userId: req.user.get('id')
+		}
+	}).then(function (task){
 			if(!!task) {
 			res.json(task.toJSON());
 		} else {
@@ -66,7 +73,12 @@ app.post('/todos', middleware.requireAuthentication, function(req, res) {
 
 app.delete('/todos/:id', middleware.requireAuthentication, function(req, res) {
 	var id = parseInt(req.params.id, 10);
-	db.task.destroy({where: {id: id}}).then(function (rowsDeleted) {
+	db.task.destroy({
+		where: {
+			id: id,
+			userId: req.user.get('id')
+		}
+	}).then(function (rowsDeleted) {
 		if(rowsDeleted === 0) {
 					res.status(404).json({
 						error: 'No deleted data'
@@ -91,7 +103,12 @@ app.put('/todos/:id', middleware.requireAuthentication, function(req, res) {
 				where.completed = body.completed;
 			}
 
-			db.task.findById(id).then(function (tasks) {
+			db.task.findOne({
+				where: {
+					id: id,
+					userId: req.user.get('id')
+				}
+			}).then(function (tasks) {
 					if(tasks) {
 						tasks.update(where).then(function (task) {
 								res.json(task.toJSON());
